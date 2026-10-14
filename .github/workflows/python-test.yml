@@ -1,22 +1,46 @@
-name: Python Test Workflow
+name: FastAPI Test Suite
+
 on:
   push:
-    branches: ['main']
+    branches: [ "main" ]
+
 jobs:
-    test:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Get Code
-              uses: actions/checkout@v4
-            - name: Set up Python
-              uses: actions/setup-python@v5
-              with:
-                python-version: '3.14'
-            - name: Install Dependencies
-              run: |
-                python -m pip install --upgrade pip
-                pip install -r requirements.txt
-                pip install pytest
-            - name: Run Tests
-              run: |
-                pytest
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Start FastAPI server with multiple workers
+        run: |
+          # --workers 4 starts a master process with 4 worker processes
+          # Running with '&' puts the process in the background
+          uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4 &
+          # Wait until the server is accepting connections
+          timeout 30 bash -c 'until nc -z localhost 8000; do sleep 0.5; done'
+
+      - name: Run Pytest
+        run: pytest
+
+  second-test:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Test Environment
+        run: echo "Deploying to test environment..."
+      - name: Run additional tests
+        run: echo "Running additional tests..."
+      - name: Notify team
+        run: echo "Notifying team about test results..."
