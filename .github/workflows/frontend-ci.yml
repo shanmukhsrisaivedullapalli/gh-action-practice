@@ -2,7 +2,7 @@ name: Frontend CI
 
 on:
   push:
-    branches: [ "feature/frontend" ]  # replace with your exact branch name
+    branches: [ "vite-practice" ]  # replace with your exact branch name
 
 jobs:
   build-and-test:
