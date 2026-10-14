@@ -6,7 +6,10 @@ jobs:
         steps:
             - name: Print Hello World
               run: echo "Hello World"
-            - name: Print Current Date
-              run: date
+            - name: Print System Information
+              run: |
+                echo "Operating System: $(uname -s)"
+                echo "Kernel Version: $(uname -r)"
+                echo "Architecture: $(uname -m)"
             - name: Print goodbye
               run: echo "Goodbye"
