@@ -1,0 +1,36 @@
+name: Handle Issues
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  issues: write
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Log Issue Details
+        run: |
+          echo "Issue number: ${{ github.event.issue.number }}"
+          echo "Created by: ${{ github.event.issue.user.login }}"
+          echo "Title: ${{ github.event.issue.title }}"
+
+      - name: Add comment to new issue
+        if: github.event.action == 'opened'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          USER: ${{ github.event.issue.user.login }}
+        run: |
+          gh issue comment "$ISSUE_URL" --body "Thanks @$USER for opening this issue! Our team will triage it shortly."
+
+      - name: Auto-label bug reports
+        if: contains(github.event.issue.title, 'bug') || contains(github.event.issue.title, 'fix')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+        run: |
+          gh issue edit "$ISSUE_URL" --add-label "bug"
