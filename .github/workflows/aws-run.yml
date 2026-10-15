@@ -1,0 +1,24 @@
+name: Run AWS Commands
+on: [workflow_dispatch]
+jobs:
+  aws-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Run AWS CLI command
+        run: |
+          echo "Listing S3 buckets:"
+          aws s3 ls
+      - name: Run AWS CLI command to list EC2 instances
+        run: |
+          echo "Listing EC2 instances:"
+          aws ec2 describe-instances
