@@ -1,0 +1,33 @@
+name: "Hands-on 2: Cross-Job Data Handoff"
+
+on: [workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      artifact_version: ${{ steps.set_version.outputs.version }}
+      build_status: ${{ steps.verify.outputs.status }}
+    steps:
+      - name: Calculate version
+        id: set_version
+        run: |
+          BUILD_NUM="${{ github.run_number }}"
+          echo "version=v1.2.${BUILD_NUM}" >> "$GITHUB_OUTPUT"
+
+      - name: Run mock verification
+        id: verify
+        run: |
+          echo "status=PASSED" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read data from build job
+        env:
+          TARGET_VERSION: ${{ needs.build.outputs.artifact_version }}
+          PREV_STATUS: ${{ needs.build.outputs.build_status }}
+        run: |
+          echo "Received version from upstream job: $TARGET_VERSION"
+          echo "Build status was: $PREV_STATUS"
