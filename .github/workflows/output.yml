@@ -1,0 +1,63 @@
+name: Inspect Contexts and Expressions
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "**" ]
+
+env:
+  GLOBAL_DEMO_VAR: "global_value"
+
+jobs:
+  dump-contexts:
+    runs-on: ubuntu-latest
+    env:
+      JOB_DEMO_VAR: "job_value"
+
+    steps:
+      - name: Dump github context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+      - name: Dump job context
+        env:
+          JOB_CONTEXT: ${{ toJson(job) }}
+        run: echo "$JOB_CONTEXT"
+
+      - name: Dump runner context
+        env:
+          RUNNER_CONTEXT: ${{ toJson(runner) }}
+        run: echo "$RUNNER_CONTEXT"
+
+      - name: Dump vars context (repo variables)
+        env:
+          VARS_CONTEXT: ${{ toJson(vars) }}
+        run: echo "$VARS_CONTEXT"
+
+      - name: Dump env context
+        env:
+          ENV_CONTEXT: ${{ toJson(env) }}
+        run: echo "$ENV_CONTEXT"
+
+      - name: Test step output expression
+        id: step_one
+        run: |
+          echo "sample_output=devops-practice-test" >> "$GITHUB_OUTPUT"
+          echo "status_code=200" >> "$GITHUB_OUTPUT"
+
+      - name: Dump steps context and evaluate expressions
+        env:
+          STEPS_CONTEXT: ${{ toJson(steps) }}
+          OUTPUT_VAL: ${{ steps.step_one.outputs.sample_output }}
+          IS_MAIN_BRANCH: ${{ github.ref == 'refs/heads/main' }}
+          CONTAINS_EXP: ${{ contains(github.ref, 'main') }}
+          DEFAULT_EXP: ${{ github.event.head_commit.message || 'No commit message' }}
+        run: |
+          echo "=== Steps Context ==="
+          echo "$STEPS_CONTEXT"
+          echo "=== Expression Evaluations ==="
+          echo "Extracted Step Output: $OUTPUT_VAL"
+          echo "Is Main Branch?: $IS_MAIN_BRANCH"
+          echo "Branch contains 'main'?: $CONTAINS_EXP"
+          echo "Fallback expression: $DEFAULT_EXP"
